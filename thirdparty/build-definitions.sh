@@ -380,6 +380,7 @@ build_libunwind() {
   $LIBUNWIND_SOURCE/configure \
     --disable-minidebuginfo \
     --with-pic \
+    --build=mips64el-redhat-linux \
     --prefix=$PREFIX
   make -j$PARALLEL $EXTRA_MAKEFLAGS install
   popd
@@ -544,11 +545,11 @@ build_bitshuffle() {
   # once with the flag and once without, and use some linker tricks to
   # suffix the AVX2 symbols with '_avx2'. OSX doesn't have objcopy, so we only
   # do this trick on Linux.
-  if [ -n "$OS_LINUX" ]; then
-    arches="default avx2"
-  else
+  #if [ -n "$OS_LINUX" ]; then
+  #  arches="default avx2"
+  #else
     arches="default"
-  fi
+  #fi
   to_link=""
   for arch in $arches ; do
     arch_flag=""
@@ -592,6 +593,7 @@ build_libev() {
     CXXFLAGS="$EXTRA_CXXFLAGS" \
     $LIBEV_SOURCE/configure \
     --with-pic \
+    --build=mips64el-redhat-linux \
     --prefix=$PREFIX
   make -j$PARALLEL $EXTRA_MAKEFLAGS install
   popd
@@ -894,7 +896,8 @@ build_bison() {
     LDFLAGS="$EXTRA_LDFLAGS" \
     LIBS="$EXTRA_LIBS" \
     $BISON_SOURCE/configure \
-    --prefix=$PREFIX
+    --prefix=$PREFIX \
+    --build=mips64el-redhat-linux
   make -j$PARALLEL $EXTRA_MAKEFLAGS install
   popd
 }
