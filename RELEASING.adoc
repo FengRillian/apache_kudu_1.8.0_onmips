@@ -1,0 +1,267 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+= RELEASING KUDU
+
+== Overview
+
+This document gives the steps required to perform a Kudu release, and is a resource
+for Kudu release managers. To edit or update this document, edit `RELEASING.adoc`
+in `master`.
+
+== Stating Intent to Release
+
+. *A week before branching*: send an email to dev@kudu.apache.org to
+  announce that the branch will be happening, including a deadline for when new
+  commits will need gatekeeper approval.
+
+. *A day before branching*: send another email to dev@kudu.apache.org
+  to warn about it.
+
+== Creating the Branch
+
+. Create a new branch from master:
++
+----
+  git checkout master
+  git pull
+  git checkout -b branch-1.x.y
+----
+
+. Make a note of the SHA1 for the tip of the new branch, which is the first
+  field of the result of this command:
++
+----
+  git log --oneline -n1
+----
+
+. Push the branch to public remotes https://github.com/cloudera/kudu.git and
+https://git-wip-us.apache.org/repos/asf/kudu.git. The following example
+assumes they are called `cloudera` and `apache`.
++
+----
+  git push cloudera branch-1.x.y
+  git push apache branch-1.x.y
+----
+
+. Create a new branch on Gerrit. Go to
+http://gerrit.cloudera.org:8080/#/admin/projects/kudu,branches and create a new
+branch with the same name and the previously-noted SHA1.
+
+. Ask someone with permissions to fix the gerrit.cloudera.org mirroring
+  configuration. Cloudera hosts the Gerrit server and a Cloudera employee will
+  have to perform this step because SSH access is behind a firewall. The steps
+  are as follows:
+  1. Ensure your public SSH key is in `~gerrit/.ssh/authorized_keys` on gerrit.cloudera.org
+  2. From behind the firewall, `ssh gerrit.cloudera.org` to log in.
+  3. Change to the gerrit user, `sudo su gerrit`
+  4. Back up the existing replication configuration file by executing
+     `cp ~/etc/replication.config ~/etc/replication.config.bak.`date '+%Y%m%d.%H%M%S'``
+  5. Edit `etc/replication.config` to add a line for the new branch, such as `branch-1.x.y`
+  6. Send email to the dev lists for Kudu and Impala (dev@kudu.apache.org and
+     dev@impala.apache.org) indicating that you are going to restart Gerrit
+     (link:https://s.apache.org/2Wj7[example]). It is best to do the restart at
+     some time of day when you don't expect many people to be using the system,
+     since Gerrit can take a few minutes to restart.
+  7: Restart Gerrit, `~/bin/gerrit.sh restart`
+
+. As needed, patches can be cherry-picked to the new branch.
+
+== Updating Versions In Master
+
+. Check out the `master` branch and bump the version in `version.txt`.
+
+. Update the version for the Java client from within the `java` directory:
++
+----
+  cd java
+  mvn versions:set -DnewVersion=1.x.y-SNAPSHOT
+----
+
+. Update the version in `java/gradle.properties`.
+
+. If the python API has changed since the previous release, bump the Python version
+  in `python/setup.py` in master. (the Python API uses separate versioning).
+
+. After all the versions are updated, commit and push that change to Gerrit.
+
+. Notify dev@kudu.apache.org that the new branch is available.
+
+
+== Preparing A Release Candidate
+
+. Before building a release candidate, make sure you have followed the
+Apache committer guide for setting up your GPG keys
+(link:https://www.apache.org/dev/new-committers-guide.html#set-up-security-and-pgp-keys[here]).
+
+. When close to building a release candidate, try building a source tarball
+(on a supported platform):
++
+----
+  ./build-support/build_source_release.py
+----
+
+. Fix any issues it finds, such as RAT.
+
+. Test the full Java build. This will sign and build everything without
+  deploying any artifacts:
++
+----
+  # Run a gpg-agent if you don't normally.
+  gpg-agent --daemon
+  cd java
+  gradle clean install -PforceSigning
+----
++
+
+. Create a new version update commit which removes the -SNAPSHOT suffix (same
+  process as above).
+
+. When ready, create a new lightweight tag and push it to the Apache Git repository.
++
+----
+  git tag 1.x.y-RC1
+  git push apache 1.x.y-RC1
+----
+
+. Build a source tarball against the RC branch.
+
+. Create a new folder in https://dist.apache.org/repos/dist/dev/kudu/.
+  Copy the artifacts to this folder and commit (it is Subversion).
++
+----
+  svn co --depth=immediates https://dist.apache.org/repos/dist/dev/kudu/ kudu-dev-release
+  cd kudu-dev-release
+  mkdir 1.x.y-RC1
+  cp <path_to_kudu>/build/apache-kudu-1.x.y.tar.* 1.x.y-RC1
+  svn add 1.x.y-RC1/*
+  svn commit -m "Adding Kudu 1.x.y RC1"
+----
+
+. Create a Maven staging repository for the RC.
++
+----
+  # Run a gpg-agent if you don't normally
+  gpg-agent --daemon
+  cd java
+  gradle clean uploadArchives -PmavenUsername="<APACHE-LDAP-USERNAME>" -PmavenPassword="<APACHE-LDAP-PASSWORD>"
+----
++
+Go to the link:https://repository.apache.org/\#stagingRepositories[staging repository]
+and look for ‘orgapachekudu-####’ in the staging repositories list. You can
+check the ‘content’ tab at the bottom to make sure you have all of the expected
+stuff (client, various integrations, etc). Hit the checkbox next to your new
+staging repo and hit “close”. Enter something similar to “Apache Kudu 1.x.y-RC1”
+into the description box and confirm. Wait a minute or two and hit refresh, and
+your staging repo should now have a URL shown in its summary tab (eg
+`https://repository.apache.org/content/repositories/orgapachekudu-1005`)
+
+. Add your PGP key to the KEYS file:
++
+----
+svn co https://dist.apache.org/repos/dist/release/kudu/ kudu-dist-release
+cd kudu-dist-release
+(gpg --list-sigs <your-email-address> && gpg --armor --export <your-email-address>) >> KEYS
+svn commit -m "Adding my key to the KEYS file"
+----
+
+== Initiating a Vote for an RC
+
+. Send an email to dev@kudu.apache.org to start the RC process, using
+  this
+  link:http://mail-archives.apache.org/mod_mbox/kudu-dev/201606.mbox/%3CCAGpTDNduoQM0ktuZc1eW1XeXCcXhvPGftJ%3DLRB8Er5c2dZptvw%40mail.gmail.com%3E[example]
+  as a template.
+
+. Reminder that voting on a release requires a Majority Approval by the PMC.
+
+. Cycle through as many RCs as required.
+
+. Always send an email with a different subject to indicate the result. For
+  link:http://mail-archives.apache.org/mod_mbox/kudu-dev/201606.mbox/%3CCAGpTDNeJdU%2BoUF4ZJneZt%3DCfFHY-HoqKgORwVuWWUMHq5jBNzA%40mail.gmail.com%3E[example].
+
+. After the vote passes, send an email to dev@kudu.apache.org
+  indicating the result.
+
+== Release
+
+. Create a new folder in https://dist.apache.org/repos/dist/release/kudu/,
+  copy the files from the release candidate’s folder in dist/dev/kudu/, then commit.
++
+----
+  cd kudu-dist-release
+  mkdir 1.x.y
+  cp <path_to_rc_artifacts>/* 1.x.y
+  svn add 1.x.y
+  svn commit -m "Adding files for Kudu 1.x.y"
+----
+
+. In the Kudu git repo, create a signed tag from the RC’s tag, and push it to the
+Apache Git repository:
++
+----
+  git tag -s 1.x.y -m 'Release Apache Kudu 1.x.y' 1.x.y-RC1
+  git push apache 1.x.y
+----
+
+. Release the staged Java artifacts. Select the release candidate staging
+  repository in link:https://repository.apache.org/#stagingRepositories[Nexus],
+  and click 'Release'.
+
+. Release the Python artifacts. You will need to setup an account on link:https://PyPi.org[PyPi.org]
+  and ask to be added to the kudu-python PyPi project if you have not done this before.
++
+----
+# Prepare and sign the python source distribution.
+cd python
+rm -rf dist/*
+python setup.py sdist
+gpg --detach-sign -a dist/kudu-python-1.x.y.tar.gz
+# Upload the distribution to PyPi using twine.
+pip install twine
+twine upload dist/*
+----
+Note: You can upload to the test PyPi by adding
+`--repository-url https://test.pypi.org/legacy/` to the twine command.
+
+. Generate the version-specific documentation from that branch following these
+  link:https://github.com/apache/kudu/#updating-the-kudu-web-site-documentation[instructions].
+
+. Replace the `apidocs`, `cpp-client-api`, and `docs` folders in the `gh-pages` branch with
+  the new documentation.
+
+. Update the `index.md` file in the releases folder, add a new folder named after the release version,
+  copy the `apidocs`, `cpp-client-api`, and `docs` folders there, copy an `index.md` file from one
+  of the other releases and modify it accordingly.
+
+. Commit all these changes.
+
+. Create a new review for all those new and updated files in `gh-pages`.
+
+. Once the review is finished and the commit is pushed, update the website following
+  these link:https://github.com/apache/kudu/#deploying-changes-to-the-apache-kudu-web-site[instructions].
+
+. About 24 hours after the first step was completed, send an email to
+  user@kudu.apache.org, dev@kudu.apache.org, and announce@apache.org
+  to announce the release. The email should be similar to
+  link:https://s.apache.org/pduz[this].
+
+. About another 24 hours later, delete the previous minor version in the branch
+  you released from, from SVN. For example, if you released 1.2.1, delete `1.2.0`.
+  Also delete any release candidates from the dev SVN.
+
+. Update the version number on the branch you released from back to a SNAPSHOT
+  for the next patch release, such as `1.6.1-SNAPSHOT` after the `1.6.0` release.

@@ -1,0 +1,173 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+= Kudu {cpp} client example README
+:author: Kudu Team
+:homepage: https://kudu.apache.org/
+
+== Summary
+The Kudu {cpp} client library distribution contains a {cpp} example application
+that demonstrates how to use the Kudu {cpp} client API.  The example
+can be used as a starting point for a custom Kudu {cpp} client application.
+This note contains information on how to build the Kudu {cpp} client example.
+
+== How to build the example if installing Kudu from packages
+This section describes how to build the example if installing Kudu
+using pre-built packages.
+
+. Install the required packages as described in the
+https://kudu.apache.org/docs/installation.html#install_packages[documentation on the Kudu Web site].
+The `kudu-client0` package (`libkuduclient0` on Debian/Ubuntu Linux
+distributions) contains the Kudu {cpp} client library, and the `kudu-client-dev`
+package (`libkuduclient-dev` on Debian/Ubuntu Linux distributions) contains
+the Kudu {cpp} client header files and {cpp} code example (`example.cc`)
+along with other auxiliary content.
+
+. Make sure `cmake` of version at least 2.8 is installed on the system.
+
+. Copy the example into a custom location where you would like to work
+with the code. Working in the `/usr/share/doc/kuduClient/examples`
+directory is possible but is not recommended since it requires
+super-user access and pollutes the `example` directory with
+intermediate files.
+For example, to copy the `/usr/share/doc/kuduClient/examples` directory
+recursively into `/tmp/kuduClient`:
++
+[source,bash]
+----
+cp -r /usr/share/doc/kuduClient/examples /tmp/kuduClient
+----
+
+. Navigate into the directory where the `example.cc.gz` file was copied and
+unpack the example source file.  For example:
++
+[source,bash]
+----
+cd /tmp/kuduClient/examples
+gunzip example.cc.gz
+----
+
+. Run `cmake` to generate appropriate makefiles.  For example, if targeting
+for a debug build
++
+[source,bash]
+----
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=debug
+----
++
+For a release build, use `release` for `CMAKE_BUILD_TYPE` instead.
+
+. Run `make` to build the example:
++
+[source,bash]
+----
+make
+----
+
+== How to build the example if building Kudu from source
+This section describes how to build the example if building Kudu from source.
+To install the `example.cc` and other files, an alternate destination root
+is used.
+
+Specifying an alternate destination root allows you to install the
+Kudu {cpp} client library, the example file, and other content
+under the specified destination prefix.
+
+. Follow the https://kudu.apache.org/docs/installation.html#_build_from_source[instructions on the Kudu Web site]
+to build the project from source.
+
+. Once the project is built, change into the `<build_dir>/src/kudu/client`
+sub-directory.
+
+. Run `make install` with an alternate destination root. For example, if
+installing into `/tmp/client_alt_root`
++
+[source,bash]
+----
+make install DESTDIR=/tmp/client_alt_root
+----
+
+. Change the current working directory into the
+`usr/local/share/doc/kuduClient/examples` subdirectory of the alternate
+destination root.  For example, if installing into `/tmp/client_alt_root`
++
+[source,bash]
+----
+cd /tmp/client_alt_root/usr/local/share/doc/kuduClient/examples
+----
+
+. Run `cmake` to generate appropriate makefiles. For example, if installing
+into `/tmp/client_alt_root` and targeting for a debug build
++
+[source,bash]
+----
+cmake -G "Unix Makefiles" -DkuduClient_DIR=/tmp/client_alt_root/usr/local/share/kuduClient/cmake -DCMAKE_BUILD_TYPE=debug
+----
++
+For a release build, set `release` for `CMAKE_BUILD_TYPE` instead.
+
+. Run `make` to build the example:
++
+[source,bash]
+----
+make
+----
+
+== Running the sample application
+After the example is built, it is ready to run against your Kudu cluster.
+The example application assumes the target Kudu cluster has at least 3
+running tablet servers, because it creates a table with replication factor 3.
+If that's not the case, modify `example.cc` accordingly and re-compile. By
+default, the `example` binary runs against a local Kudu master using the
+default port 7051. You may also specify a different master or multiple masters
+as arguments to the binary, as shown. The following output shows a successful
+invocation of the example application, with some uninteresting log messages
+removed:
+
+[source,bash]
+----
+$ ./example localhost:9876 localhost:9877 localhost:9878
+Running with Kudu client version: kudu 1.8.0-SNAPSHOT (rev bbbb45fd31f2eb1570563e925639e549047b0707)
+Long version info: kudu 1.8.0-SNAPSHOT
+revision bbbb45fd31f2eb1570563e925639e549047b0707
+build type DEBUG
+built by wdberkeley at 27 Mar 2018 23:52:18 PST on cloudbook.local
+Received log message from Kudu client library
+ Severity: 0
+ Filename: /Users/wdberkeley/src/kudu/src/kudu/util/thread.cc
+ Line number: 570
+ Time: Wed Mar 28 01:50:48 2018
+ Message: Started thread 17452818 - kernel-watchdog:kernel-watcher
+ ...
+ Received log message from Kudu client library
+ Severity: 0
+ Filename: /Users/wdberkeley/src/kudu/src/kudu/client/client-internal.cc
+ Line number: 581
+ Time: Wed Mar 28 01:50:48 2018
+ Message: Considering host 192.168.1.4 local
+Created a client connection
+Created a schema
+Created a table
+Altered a table
+Inserted some rows into a table
+Scanned some rows out of a table
+Deleted a table
+Done
+----
+
+== References
+. https://kudu.apache.org/[The Kudu Project Web Site]
+. https://kudu.apache.org/cpp-client-api/[Kudu {cpp} client API documentation]
