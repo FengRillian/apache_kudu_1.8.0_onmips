@@ -48,6 +48,8 @@ typedef int32_t Atomic32;
 namespace base {
 namespace subtle {
 
+typedef int32_t Atomic32;
+typedef int64_t Atomic64;
 
 inline void PauseCPU() {
 }
