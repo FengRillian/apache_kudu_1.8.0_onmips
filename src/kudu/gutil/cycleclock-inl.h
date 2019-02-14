@@ -188,7 +188,7 @@ inline int64 CycleClock::Now() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
   return static_cast<int64>((tv.tv_sec + tv.tv_usec * 0.000001)
-                            * CyclesPerSecond());
+                            * base::CyclesPerSecond());
 }
 
 // ----------------------------------------------------------------

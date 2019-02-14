@@ -266,6 +266,9 @@ void CPU::Initialize() {
 #elif defined(ARCH_CPU_ARM_FAMILY) && (defined(OS_ANDROID) || defined(OS_LINUX))
   cpu_brand_.assign(g_lazy_cpuinfo.Get().brand());
   has_broken_neon_ = g_lazy_cpuinfo.Get().has_broken_neon();
+#elif defined( _MIPS_ARCH_LOONGSON3A )
+  cpu_brand_.assign("loongson3a");
+  has_broken_neon_ = false;
 #else
   #error unknown architecture
 #endif

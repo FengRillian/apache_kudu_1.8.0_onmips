@@ -20,7 +20,7 @@
 # Note: cmake in thirdparty/ will always meet this minimum.
 #
 # 1. http://llvm.org/releases/3.9.0/docs/ReleaseNotes.html
-cmake_minimum_required(VERSION 3.4.3)
+cmake_minimum_required(VERSION 3.0.0)
 
 # Prevent builds from the top-level source directory. This ensures that build
 # output is well isolated from the source tree.
@@ -124,7 +124,7 @@ endif()
 
 # compiler flags that are common across debug/release builds
 #  -msse4.2: Enable sse4.2 compiler intrinsics.
-set(CXX_COMMON_FLAGS "-msse4.2")
+#set(CXX_COMMON_FLAGS "-msse4.2")
 #  -Wall: Enable all warnings.
 set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wall")
 #  -Wno-sign-compare: suppress warnings for comparison between signed and unsigned

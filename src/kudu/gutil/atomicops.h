@@ -84,6 +84,8 @@
 #include "kudu/gutil/atomicops-internals-powerpc.h" // IWYU pragma: export
 #elif defined(OS_WINDOWS)
 #include "kudu/gutil/atomicops-internals-windows.h" // IWYU pragma: export
+#elif defined(__MIPSEL__)
+#include "kudu/gutil/atomicops-internals-mips.h"
 #else
 #error You need to implement atomic operations for this architecture
 #endif
