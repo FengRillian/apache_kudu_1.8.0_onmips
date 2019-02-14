@@ -17,14 +17,18 @@
 #ifndef KUDU_UTIL_GROUP_VARINT_INL_H
 #define KUDU_UTIL_GROUP_VARINT_INL_H
 
+#if HAVE_CLANG_INSTALLED
 #include <emmintrin.h>
+#endif
 #ifdef __linux__
 #include <endian.h>
 #endif
+
+#if HAVE_CLANG_INSTALLED
 #include <smmintrin.h>
 #include <tmmintrin.h>
 #include <xmmintrin.h>
-
+#endif
 #include <cstdint>
 #include <cstring>
 
@@ -44,6 +48,10 @@
 #include <boost/preprocessor/tuple/elem.hpp>
 #include <boost/preprocessor/variadic/elem.hpp>
 #include <glog/logging.h>
+
+#ifndef HAVE_CLANG_INSTALLED
+#define __m128i  unsigned long long
+#endif
 
 #ifndef __linux__
 #include "kudu/gutil/port.h"
@@ -122,7 +130,7 @@ inline const uint8_t *DecodeGroupVarInt32_SlowButSafe(
   return src + total_len;
 }
 
-
+#if HAVE_CLANG_INSTALLED
 inline void DoExtractM128(__m128i results,
                           uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d) {
 #define SSE_USE_EXTRACT_PS
@@ -174,7 +182,6 @@ inline const uint8_t *DecodeGroupVarInt32_SSE(
 
   return src;
 }
-
 // Optimized function which decodes a group of uint32s from 'src' into 'ret',
 // which should have enough space for 4 uint32s. During decoding, adds 'add'
 // to the vector in parallel.
@@ -201,7 +208,7 @@ inline const uint8_t *DecodeGroupVarInt32_SSE_Add(
   src += VARINT_SELECTOR_LENGTHS[sel_byte];
   return src;
 }
-
+#endif /* #if HAVE_CLANG_INSTALLED*/
 
 // Append a set of group-varint encoded integers to the given faststring.
 inline void AppendGroupVarInt32(

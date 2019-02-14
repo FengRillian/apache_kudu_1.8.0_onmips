@@ -18,8 +18,10 @@
 #ifndef KUDU_COMMON_KEYENCODER_H
 #define KUDU_COMMON_KEYENCODER_H
 
+#if HAVE_CLANG_INSTALLED
 #include <emmintrin.h>
 #include <smmintrin.h>
+#endif
 
 #include <climits>
 #include <cstdint>
@@ -39,6 +41,10 @@
 #include "kudu/util/memory/arena.h"
 #include "kudu/util/slice.h"
 #include "kudu/util/status.h"
+
+#ifndef HAVE_CLANG_INSTALLED
+#define __m128i  unsigned long long
+#endif
 
 // The SSE-based encoding is not yet working. Don't define this!
 #undef KEY_ENCODER_USE_SSE
@@ -249,6 +255,7 @@ struct KeyEncoderTraits<BINARY, Buffer> {
   // REQUIRES: len == 16 or 8
   template<int LEN>
   static bool SSEEncodeChunk(const uint8_t** srcp, uint8_t** dstp) {
+#if HAVE_CLANG_INSTALLED
     COMPILE_ASSERT(LEN == 16 || LEN == 8, invalid_length);
     __m128i data;
     if (LEN == 16) {
@@ -284,6 +291,7 @@ struct KeyEncoderTraits<BINARY, Buffer> {
     }
     *dstp += LEN;
     *srcp += LEN;
+#endif
     return true;
   }
 
