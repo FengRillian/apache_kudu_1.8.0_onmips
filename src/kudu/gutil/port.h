@@ -334,6 +334,10 @@ inline void* memrchr(const void* bytes, int find_char, size_t len) {
 #elif defined(__ARM_ARCH_7A__)
 #define CACHELINE_SIZE 64
 #endif
+#elif defined(__MIPSEL__)
+#define CACHELINE_SIZE 64
+#else
+#error unknown cache line size
 #endif
 
 // This is a NOP if CACHELINE_SIZE is not defined.
