@@ -48,6 +48,9 @@ typedef int32_t Atomic32;
 namespace base {
 namespace subtle {
 
+
+inline void PauseCPU() {
+}
 // Atomically execute:
 // result = *ptr;
 // if (*ptr == old_value)
@@ -161,6 +164,20 @@ inline Atomic32 Release_AtomicExchange(volatile Atomic32* ptr,
     return NoBarrier_AtomicExchange(ptr, new_value);
 }
 
+inline Atomic32 Barrier_AtomicIncrement(volatile Atomic32* ptr,
+                                        Atomic32 increment) {
+    Atomic32 old_value = *ptr;
+    Atomic32 new_value = old_value + increment;
+    return new_value;
+}
+
+inline Atomic32 NoBarrier_AtomicIncrement(volatile Atomic32 *ptr,
+                                          Atomic32 increment) {
+  MemoryBarrier();
+  return Barrier_AtomicIncrement(const_cast<Atomic32*>(ptr), increment);
+}
+
+
 inline void Acquire_Store(volatile Atomic32* ptr, Atomic32 value)
 {
     *ptr = value;
@@ -271,6 +288,19 @@ inline Atomic64 Release_CompareAndSwap(volatile Atomic64* ptr,
     MemoryBarrier();
     Atomic64 res = NoBarrier_CompareAndSwap(ptr, old_value, new_value);
     return res;
+}
+
+inline Atomic64 NoBarrier_AtomicIncrement(volatile Atomic64 *ptr,
+                                       Atomic64 increment) {
+    Atomic64 old_value = *ptr;
+    Atomic64 new_value = old_value + increment;
+    return new_value;
+}
+
+inline Atomic64 Barrier_AtomicIncrement(volatile Atomic64 *ptr,
+                                     Atomic64 increment) {
+  MemoryBarrier();
+  return Barrier_AtomicIncrement(const_cast<Atomic64*>(ptr), increment);
 }
 
 inline void NoBarrier_Store(volatile Atomic64* ptr, Atomic64 value)
