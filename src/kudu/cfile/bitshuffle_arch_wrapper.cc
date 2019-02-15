@@ -58,15 +58,19 @@ decltype(&bshuf_decompress_lz4) g_bshuf_decompress_lz4;
 __attribute__((constructor))
 void SelectBitshuffleFunctions() {
 #ifndef __APPLE__
+#if OS_HAVE_AVX2
   if (CPU().has_avx2()) {
     g_bshuf_compress_lz4_bound = bshuf_compress_lz4_bound_avx2;
     g_bshuf_compress_lz4 = bshuf_compress_lz4_avx2;
     g_bshuf_decompress_lz4 = bshuf_decompress_lz4_avx2;
   } else {
+#endif
     g_bshuf_compress_lz4_bound = bshuf_compress_lz4_bound;
     g_bshuf_compress_lz4 = bshuf_compress_lz4;
     g_bshuf_decompress_lz4 = bshuf_decompress_lz4;
+#if OS_HAVE_AVX2
   }
+#endif
 #else
   g_bshuf_compress_lz4_bound = bshuf_compress_lz4_bound;
   g_bshuf_compress_lz4 = bshuf_compress_lz4;
