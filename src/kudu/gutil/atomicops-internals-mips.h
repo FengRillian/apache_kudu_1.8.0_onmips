@@ -43,7 +43,9 @@
 #define BASE_HAS_ATOMIC64 1
 #endif
 
+
 typedef int32_t Atomic32;
+typedef int64_t Atomic64;
 
 namespace base {
 namespace subtle {
@@ -67,6 +69,7 @@ inline Atomic32 NoBarrier_CompareAndSwap(volatile Atomic32* ptr,
                                          Atomic32 old_value,
                                          Atomic32 new_value)
 {
+#if 0
     Atomic32 prev, tmp;
     __asm__ volatile(
         ".set   push                \n"
@@ -88,6 +91,14 @@ inline Atomic32 NoBarrier_CompareAndSwap(volatile Atomic32* ptr,
           "m" (*ptr)
         : "memory"
     );
+#else
+    Atomic32 prev;
+    prev = *ptr;
+    if( prev == old_value)
+    {
+        *ptr = new_value;
+    }
+#endif
     return prev;
 }
 
@@ -96,6 +107,7 @@ inline Atomic32 NoBarrier_CompareAndSwap(volatile Atomic32* ptr,
 inline Atomic32 NoBarrier_AtomicExchange(volatile Atomic32* ptr,
                                          Atomic32 new_value)
 {
+#if 0
     Atomic32 temp, old;
     __asm__ volatile(
         ".set   push                \n"
@@ -114,6 +126,11 @@ inline Atomic32 NoBarrier_AtomicExchange(volatile Atomic32* ptr,
         : "r" (new_value), "m" (*ptr)
         : "memory"
     );
+#else
+    Atomic32 old;
+    old = *ptr;
+    *ptr = new_value;
+#endif
     return old;
 }
 

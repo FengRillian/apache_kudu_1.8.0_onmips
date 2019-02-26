@@ -39,7 +39,7 @@
 // function and blocks signals while calling it. And skip it for macOS; it
 // doesn't exist there.
 #if !defined(THREAD_SANITIZER) && !defined(__APPLE__)
-#define HOOK_DL_ITERATE_PHDR 1
+//#define HOOK_DL_ITERATE_PHDR 1
 #endif
 
 typedef int (*dl_iterate_phdr_cbtype)(struct dl_phdr_info *, size_t, void *);
