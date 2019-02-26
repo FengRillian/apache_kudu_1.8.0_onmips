@@ -147,6 +147,7 @@ set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -pthread")
 set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -fno-strict-aliasing")
 #  -DBOOST_DATE_TIME_POSIX_TIME_STD_CONFIG: enable nanosecond precision for boost
 set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -DBOOST_DATE_TIME_POSIX_TIME_STD_CONFIG")
+set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -I${THIRDPARTY_INSTALL_DIR}/tmpclang_include/clang/6.0.0/include/")
 
 # We want access to the PRI* print format macros.
 add_definitions(-D__STDC_FORMAT_MACROS)
