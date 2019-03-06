@@ -425,6 +425,7 @@ build_gperftools() {
     LIBS="$EXTRA_LIBS" \
     $GPERFTOOLS_SOURCE/configure \
     --enable-frame-pointers \
+    --build=mips64el-redhat-linux \
     --with-pic \
     --prefix=$PREFIX
   fixup_libtool
