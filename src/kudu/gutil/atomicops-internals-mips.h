@@ -235,6 +235,7 @@ inline Atomic64 NoBarrier_CompareAndSwap(volatile Atomic64* ptr,
                                          Atomic64 old_value,
                                          Atomic64 new_value)
 {
+#if 0
     Atomic64 prev, tmp;
     __asm__ volatile(
         ".set   push                \n"
@@ -256,12 +257,21 @@ inline Atomic64 NoBarrier_CompareAndSwap(volatile Atomic64* ptr,
           "m" (*ptr)
         : "memory"
     );
+ #else
+    Atomic32 prev;
+    prev = *ptr;
+    if( prev == old_value)
+    {
+        *ptr = new_value;
+    }
+#endif
     return prev;
 }
 
 inline Atomic64 NoBarrier_AtomicExchange(volatile Atomic64* ptr,
                                          Atomic64 new_value)
 {
+#if 0
     Atomic64 temp, old;
     __asm__ volatile(
         ".set   push                \n"
@@ -280,6 +290,13 @@ inline Atomic64 NoBarrier_AtomicExchange(volatile Atomic64* ptr,
         : "r" (new_value), "m" (*ptr)
         : "memory"
     );
+
+#else
+    Atomic32 old;
+    old = *ptr;
+    *ptr = new_value;
+#endif
+
     return old;
 }
 
