@@ -40,6 +40,7 @@ using std::string;
 using strings::Substitute;
 using strings::SubstituteAndAppend;
 
+
 #ifndef NDEBUG
 DEFINE_bool(debug_mutex_collect_stacktrace, false,
             "Whether to collect a stacktrace on Mutex contention in a DEBUG build");
@@ -130,23 +131,29 @@ void Mutex::Release() {
 
 #ifndef NDEBUG
 void Mutex::AssertAcquired() const {
+#if 0
   DCHECK_EQ(Env::Default()->gettid(), owning_tid_);
+#endif
 }
 
 void Mutex::CheckHeldAndUnmark() {
+#if 0
   AssertAcquired();
   owning_tid_ = 0;
   if (FLAGS_debug_mutex_collect_stacktrace) {
     stack_trace_->Reset();
   }
+#endif
 }
 
 void Mutex::CheckUnheldAndMark() {
+#if 0
   DCHECK_EQ(0, owning_tid_);
   owning_tid_ = Env::Default()->gettid();
   if (FLAGS_debug_mutex_collect_stacktrace) {
     stack_trace_->Collect();
   }
+#endif
 }
 
 string Mutex::GetOwnerThreadInfo() const {
