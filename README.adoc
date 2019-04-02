@@ -16,6 +16,23 @@
 // under the License.
 = Kudu Developer Documentation
 
+== Building Kudu on Loongson mips platform:
+yum -y install nss
+yum -y install node
+yum -y install nodejs
+yum -y install flex
+yum -y install cmake
+yum -y install gcc-c++
+yum -y install openssl-devel
+While compiling thirdparty has errors, replace_while_error/** may help fix crcutils nvml llvm compile errors.
+
+If fatal error: 'cstdint' file not found error occurs, add these two lines of code to the 150 lines of CMakeLists.txt in the root directory:
+set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -I/usr/include/c++/4.9.3/")
+set(CXX_COMMON_FLAGS"${CXX_COMMON_FLAGS} -I/usr/include/c++/4.9.3/mips64el-neokylin-linux/")
+
+While have a file error that cannot be found in mm_malloc.h, create the directory apache-kudu-1.8.0/thirdparty/installed/tmpclang_include/clang/6.0.0/include/.
+Copy the need file (don't copy the whole directory) from the installed apache-kudu-1.8.0/thirdparty/installed/uninstrumented/lib/clang/6.0.0/include/ to the created directory.
+
 == Building and installing Kudu
 
 Follow the steps in the http://getkudu.io/docs/installation.html#_build_from_source[documentation]
