@@ -17,13 +17,8 @@
 = Kudu Developer Documentation
 
 == Building Kudu on Loongson mips platform:
-yum -y install nss
-yum -y install node
-yum -y install nodejs
-yum -y install flex
-yum -y install cmake
-yum -y install gcc-c++
-yum -y install openssl-devel
+depend softwares: nss  node  nodejs  flex  cmake  gcc-c++  openssl-devel
+
 While compiling thirdparty has errors, replace_while_error/** may help fix crcutils nvml llvm compile errors.
 
 If fatal error: 'cstdint' file not found error occurs, add these two lines of code to the 150 lines of CMakeLists.txt in the root directory:
